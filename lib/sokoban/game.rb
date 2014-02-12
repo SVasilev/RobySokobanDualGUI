@@ -1,0 +1,3 @@
+module Sokoban
+
+end

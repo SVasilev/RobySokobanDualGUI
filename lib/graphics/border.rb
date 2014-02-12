@@ -1,4 +1,4 @@
-module Sokoban
+module Graphics
   class Border
     attr_reader :padding
 

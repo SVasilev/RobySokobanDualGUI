@@ -1,4 +1,4 @@
-module Sokoban
+module Graphics
   class Position
     attr_accessor :x, :y
 

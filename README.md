@@ -1,4 +1,4 @@
-Ruby_Sokoban Dual GUI
+Ruby Sokoban Dual GUI
 ============
 
 Ruby Sokoban implements the well known game Sokoban using Shoes! GUI. In addition it provides a level editor which 

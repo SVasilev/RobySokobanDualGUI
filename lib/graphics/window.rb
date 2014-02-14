@@ -1,21 +1,31 @@
 module Graphics
   class Window
-    def initialize(width = 1000, height = 600)
-      @width  = width
-      @height = height
-      @window = {}
+    attr_reader :width, :height, :contents
+
+    def initialize(width = 79, height = 40)
+      @width    = width
+      @height   = height
+      @contents = {}
     end
 
-    def set_pixel(coordinate_x, coordinate_y, type)
-      @window[[coordinate_x, coordinate_y]] = type if coordinate_x <= @width and coordinate_y <= @height
+    def set_pixel(coordinates, type)
+      contents[[coordinates.x, coordinates.y]] = type if coordinates.x <= @width and coordinates.y <= @height
     end
 
-    def pixel_type(coordinate_x, coordinate_y)
-      @window[[coordinate_x, coordinate_y]]
+    def pixel_type(coordinates)
+      contents[[coordinates.x, coordinates.y]]
+    end
+
+    def draw(object)
+      object.render_array.each { |coordinates_and_type| set_pixel coordinates_and_type.first, coordinates_and_type.last }
     end
 
     def render_as(renderer)
+      renderer.new(self).render
+    end
 
+    def clear
+      contents.each_key { |key| contents[key] = " " }
     end
   end
 end

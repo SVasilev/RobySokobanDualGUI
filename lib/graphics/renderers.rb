@@ -27,46 +27,55 @@ module Graphics
 
       def initialize(window)
         @window = window
-        #@window_array = scale_coordinates window.contents.to_a
       end
 
-      def scale_x(value)
-        value * SCALE_X_COEFFICIENT
+      class << self
+        def scale_x(value)
+          value * SCALE_X_COEFFICIENT
+        end
       end
 
-      def scale_y(value)
-        value * SCALE_Y_COEFFICIENT
+      class << self
+        def scale_y(value)
+          value * SCALE_Y_COEFFICIENT
+        end
       end
 
-      def scale_coordinates(window)
-        scaled_array = []
-        window.each { |element| scaled_array << [[scale_x(element.first.first), scale_y(element.first.last)], element.last] }
-        scaled_array
+      class << self
+        def draw_line(shoes_application, first_point, second_point)
+          shoes_application.line scale_x(first_point.x), scale_y(first_point.y), scale_x(second_point.x), scale_y(second_point.y)
+        end
       end
 
-      def extract_border_points
-        border_points = []
-        @window.height.times do |coordinate_y|
-          @window.width.times do |coordinate_x|
-            if @window.contents[[coordinate_x, coordinate_y]] == :border and @window.contents[[coordinate_x + 1, coordinate_y]]
-              border_points << [Position.new(coordinate_x, coordinate_y), Position.new(coordinate_x + 1, coordinate_y)]
+      class << self
+        def extract_border_points(window)
+          border_points = []
+          window.height.times do |coordinate_y|
+            window.width.times do |coordinate_x|
+              if window.contents[[coordinate_x, coordinate_y]] == :border and window.contents[[coordinate_x + 1, coordinate_y]]
+                border_points << [Position.new(coordinate_x, coordinate_y), Position.new(coordinate_x + 1, coordinate_y)]
+              end
+              if window.contents[[coordinate_x, coordinate_y]] == :border and window.contents[[coordinate_x, coordinate_y + 1]]
+                border_points << [Position.new(coordinate_x, coordinate_y), Position.new(coordinate_x, coordinate_y + 1)]
+              end
             end
           end
+          border_points
         end
-        border_points
       end
 
-      def self.draw_line(shoes_application, first_point, second_point)
-        p :alive
-        shoes_application.line scale_x(first_point.x), scale_y(first_point.y), scale_x(second_point.x), scale_y(second_point.y)
+      class << self
+        def draw_borders(shoes_application, class_window)
+          shoes_application.strokewidth 2
+          border_points = extract_border_points class_window
+          border_points.each { |point_pair| draw_line shoes_application, point_pair.first, point_pair.last }
+        end
       end
 
       def render
-        border_points = extract_border_points
-        Shoes.app title: "Sokoban editor", width: scale_x(@window.width), height: scale_y(@window.height), resizable: false do
-          p border_points
-          border_points.each { |point_pair| line scale_x(point_pair.first.x), scale_y(point_pair.first.y), scale_x(point_pair.last.x), scale_y(point_pair.last.y) }
-          p :Alive
+        class_instance, class_window = Graphics::Renderers::ShoesGUI, @window
+        Shoes.app title: "Sokoban editor", width: class_instance.scale_x(@window.width), height: class_instance.scale_y(@window.height), resizable: false do
+          class_instance.draw_borders self, class_window
         end
       end
     end

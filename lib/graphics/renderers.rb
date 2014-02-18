@@ -100,6 +100,18 @@ module Graphics
       end
 
       class << self
+        def draw_ground_pictures(shoes_application, class_window)
+          ground_pictures_array = []
+          class_window.contents.each_key do |key| 
+            if class_window.contents[key].class == String and class_window.contents[key].include? "normal_elements"
+              ground_pictures_array << (shoes_application.image class_window.contents[key], left: scale_x(key.first).to_i, top: scale_y(key.last).to_i)
+            end
+          end
+          ground_pictures_array
+        end
+      end
+
+      class << self
         def draw_captions(shoes_application, class_window)
           class_window.contents.each_key do |key| 
             if class_window.contents[key].class == String and class_window.contents[key].size == 1
@@ -146,8 +158,12 @@ module Graphics
           toolbox_pictures[0].path = toolbox_image_paths[0].last
           class_instance.toolbox_click self, toolbox_pictures, toolbox_image_paths, 0
 
-          #Catch buttons click event
+          #Catch buttons click events
           buttons_array = class_instance.draw_buttons self, class_window
+          buttons_array.each { |button| button.click { p :pradnq } }
+
+          #Catch ground drawing events
+          ground_images = class_instance.draw_ground_pictures self, class_window
         end
       end
     end

@@ -4,8 +4,9 @@ require_relative '../../lib/graphics/position'
 require_relative '../../lib/graphics/border'
 require_relative '../../lib/graphics/image'
 require_relative '../../lib/graphics/caption'
-require_relative '../../lib/graphics/tool'
 require_relative '../../lib/graphics/toolbox'
+require_relative '../../lib/graphics/button'
+require_relative '../../lib/graphics/menu'
 require_relative '../../lib/sokoban/game'
 require_relative '../helper'
 
@@ -195,23 +196,64 @@ describe "Graphics" do
     end
   end
 
-  describe "Tool" do
-    let (:image) { Graphics::Image.new "../img/normal_elements/wall.gif", Graphics::Position.new(10, 20), 20, 10 }
-    let (:tool) { Graphics::Tool.new image, ["../graphics/normal_elements/wall.gif", "../graphics/toolbox_clicked/wall.gif"] }
+  describe "ToolBox" do
+    let (:toolbox) { Graphics::ToolBox.new "Tool Box", Graphics::Position.new(2, 1) }
+    let (:image)   { Graphics::Image.new "../img/normal_elements/wall.gif", Graphics::Position.new(20, 30), 50, 60 }
 
     it "is a member of Graphics module" do
-      Graphics.constants.must_include :Tool
+      Graphics.constants.must_include :ToolBox
     end
 
-    it "allows switching pictures" do
-      tool.image.file_path = tool.load_paths.last
-      tool.image.file_path.must_equal "../graphics/toolbox_clicked/wall.gif"
+    it "allows adding tools" do
+      toolbox.instance_eval { @tools }.size.must_equal 0
+      toolbox.add_tool image
+      toolbox.instance_eval { @tools }.size.must_equal 1
+    end
+
+    it "calculates width and height correctly" do
+      toolbox.width.must_equal 0
+      toolbox.height.must_equal 0
+      toolbox.add_tool image
+      toolbox.width.must_equal 52
+      toolbox.height.must_equal 62
+      toolbox.add_tool image
+      toolbox.width.must_equal 104
+      toolbox.height.must_equal 62
+      toolbox.add_tool image
+      toolbox.height.must_equal 124
+    end
+
+    it "renders toolbox correctly" do
+      toolbox.add_tool image
+      toolbox.render_array.map(&:last).must_equal ["T", "o", "o", "l", " ", "B", "o", "x", "../img/normal_elements/wall.gif", :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border]
     end
   end
 
-  describe "ToolBox" do
+  describe "Button" do
     it "is a member of Graphics module" do
-      Graphics.constants.must_include :ToolBox
+      Graphics.constants.must_include :Button
+    end
+
+    it "renders correctly" do
+      Graphics::Button.new(Graphics::Position.new(10, 10), "Save level").render_array.first.first.x.must_equal 10
+      Graphics::Button.new(Graphics::Position.new(10, 20), "Save level").render_array.first.first.y.must_equal 20
+      Graphics::Button.new(Graphics::Position.new(10, 10), "Save level").render_array.last.last.must_equal "Save level"
+    end
+  end
+
+  describe "Menu" do
+    let (:menu) { Graphics::Menu.new ["Test Level", "New Level", "Save Level", "Load Level"], Graphics::Position.new(2, 22) }
+
+    it "is a member of Graphics module" do
+      Graphics.constants.must_include :Menu
+    end
+
+    it "calculates the height of the menu correctly" do
+      menu.height.must_equal 13.2
+    end
+
+    it "renders correctly" do
+      menu.render_array.map(&:last).must_equal ["Test Level", "New Level", "Save Level", "Load Level", :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border, :border]
     end
   end
 end

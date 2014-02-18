@@ -1,3 +1,5 @@
+require_relative '../sokoban/load_data'
+
 module Graphics
   class Renderers
     class Console
@@ -11,6 +13,7 @@ module Graphics
         return "F" if file_path.include? "final"
         return "S" if file_path.include? "smiley"
         return "E" if file_path.include? "eraser"
+        "B"
       end
 
       def render
@@ -22,7 +25,7 @@ module Graphics
             when "Symbol"
               rendered_string << "."
             when "String"
-              rendered_string << (content.include?(".") ? image_sign(content) : content)
+              rendered_string << (content.size > 1 ? image_sign(content) : content)
             else 
               rendered_string << " "
             end
@@ -106,6 +109,30 @@ module Graphics
         end
       end
 
+      class << self
+        def toolbox_click(shoes_application, toolbox_pictures, toolbox_image_paths, clicked_tool)
+          toolbox_pictures.each_index do |index| 
+            toolbox_pictures[index].click do
+              toolbox_pictures[index].path = toolbox_image_paths[index].last
+              toolbox_pictures[clicked_tool].path = toolbox_image_paths[clicked_tool].first
+              clicked_tool = index
+            end
+          end
+        end
+      end
+
+      class << self
+        def draw_buttons(shoes_application, class_window)
+          buttons_array = []
+          class_window.contents.each_key do |key| 
+            if class_window.contents[key].class == String and class_window.contents[key].include? "Level"
+              buttons_array << (shoes_application.button(class_window.contents[key]).style width: 126, height: 38, left: scale_x(key.first).to_i, top: scale_y(key.last).to_i)
+            end
+          end
+          buttons_array
+        end
+      end
+
       def render
         class_instance, class_window = Graphics::Renderers::ShoesGUI, @window
 
@@ -113,8 +140,14 @@ module Graphics
           class_instance.draw_borders self, class_window
           class_instance.draw_captions self, class_window
 
-          tool_box_pictures = class_instance.draw_toolbox_pictures self, class_window
-          tool_box_pictures.each_index { |index| tool_box_pictures[index].click { p :pradnq } if index == 4 }
+          #Catch toolbox click events
+          toolbox_pictures = class_instance.draw_toolbox_pictures self, class_window
+          toolbox_image_paths = Sokoban.set_toolbox_image_paths
+          toolbox_pictures[0].path = toolbox_image_paths[0].last
+          class_instance.toolbox_click self, toolbox_pictures, toolbox_image_paths, 0
+
+          #Catch buttons click event
+          buttons_array = class_instance.draw_buttons self, class_window
         end
       end
     end

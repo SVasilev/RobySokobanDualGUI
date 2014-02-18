@@ -1,6 +1,6 @@
 module Sokoban
   def self.set_toolbox_image_paths
-    [["../img/normal_elements/wall.gif", "../img/toolbox_clicked/wall.gif"], ["../img/toolbox_normal/cube.gif", "../img/toolbox_clicked/cube.gif"],
+    [["../img/toolbox_normal/wall.gif", "../img/toolbox_clicked/wall.gif"], ["../img/toolbox_normal/cube.gif", "../img/toolbox_clicked/cube.gif"],
     ["../img/toolbox_normal/final.gif", "../img/toolbox_clicked/final.gif"], ["../img/toolbox_normal/smiley.gif", "../img/toolbox_clicked/smiley.gif"],
     ["../img/toolbox_normal/eraser.gif", "../img/toolbox_clicked/eraser.gif"]]
   end

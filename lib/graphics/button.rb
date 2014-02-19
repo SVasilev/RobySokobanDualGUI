@@ -1,8 +1,8 @@
 module Graphics
   class Button
-    def initialize(position = Position.new, caption)
-      @position = position
+    def initialize(caption, position = Position.new)
       @caption  = caption
+      @position = position
     end
 
     def render_array

@@ -6,7 +6,7 @@ module Sokoban
   end
   
   def self.set_ground_image_paths
-    ["../img/normal_elements/wall.gif", "../img/normal_elements/cube.gif", "../img/normal_elements/final.gif", "../img/normal_elements/smiley.gif", "../img/normal_elements/empty.gif", "../img/normal_elements/cube_above_final.gif", "../img/normal_elements/smiley_above_final.gif"]
+    ["../img/normal_elements/wall.gif", "../img/normal_elements/cube.gif", "../img/normal_elements/final.gif", "../img/normal_elements/smiley.gif", "../img/normal_elements/empty.gif"]
   end
 
   def self.require_files

@@ -1,9 +1,6 @@
 module Graphics
   class Ground
-    attr_reader :pictures, :picture_paths, :width, :height, :position
-    attr_accessor :picture_indexes
-    
-    def initialize(picture = "", position = Position.new(12, 1), width = 14, height = 10)
+    def initialize(picture = "", position = Position.new(15, 2), width = 30, height = 25)
       @picture  = picture
       @position = position
       @width    = width
@@ -11,11 +8,13 @@ module Graphics
     end
 
     def render_array
+      render_result = Border.new(Position.new(@position.x - 1, @position.y - 1), Position.new(@position.x + @width + 1, @position.y + @height + 1)).render_array
       @height.times do |y_coordinate| 
         @width.times do |x_coordinate| 
-          Image.new(@picture, Position.new(@position.x + x_coordinate, @position.y + y_coordinate) 4, 4).render_array
+          render_result += Image.new(@picture, Position.new(@position.x + x_coordinate, @position.y + y_coordinate)).render_array
         end
       end
+      render_result
     end
 
     def picture_index_change(index, value)
@@ -53,24 +52,6 @@ module Graphics
         end
       end
       draw_border
-    end
-
-    def width_in_pixels
-      @width * @pictures[0].full_width
-    end
-
-    def height_in_pixels
-      @height * @pictures[0].full_height
-    end
-
-    def draw_border
-      Border.new(@window, Position.new(@position.x, @position.y), Position.new(@position.x + width_in_pixels, @position.y + height_in_pixels), 15).draw
-    end
-
-    def ground_hover?(mouse_left, mouse_top)
-      mouse_left > @pictures[0].style[:left] and mouse_top > @pictures[0].style[:top] and
-      mouse_left < @pictures.last.style[:left] + @pictures[0].full_width and 
-      mouse_top  < @pictures.last.style[:top]  + @pictures[0].full_height
     end
 
     def picture_hover?(index, mouse_left, mouse_top)

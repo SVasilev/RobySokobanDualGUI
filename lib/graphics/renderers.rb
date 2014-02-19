@@ -12,7 +12,7 @@ module Graphics
         return "C" if file_path.include? "cube"
         return "F" if file_path.include? "final"
         return "S" if file_path.include? "smiley"
-        return "E" if file_path.include? "eraser"
+        return "E" if file_path.include? "eraser" or file_path.include? "empty"
         "B"
       end
 
@@ -88,23 +88,54 @@ module Graphics
       end
 
       class << self
-        def draw_toolbox_pictures(shoes_application, class_window)
-          toolbox_pictures_array = []
-          class_window.contents.each_key do |key| 
-            if class_window.contents[key].class == String and class_window.contents[key].include? "toolbox"
-              toolbox_pictures_array << (shoes_application.image class_window.contents[key], left: scale_x(key.first).to_i, top: scale_y(key.last).to_i)
+        def extract_caption_points(window)
+          caption_points = []
+          window.contents.each_key do |key| 
+            if window.contents[key].class == String and window.contents[key].size == 1
+              caption_points << Position.new(key.first, key.last)
             end
+          end
+          caption_points
+        end
+      end
+
+      class << self
+        def draw_captions(shoes_application, class_window)
+          captions_coordinates = extract_caption_points(class_window)
+          captions_coordinates.each do |point|
+             shoes_application.para shoes_application.strong(class_window.contents[[point.x, point.y]]), font: "Arial", left: scale_x(point.x).to_i, top: scale_y(point.y).to_i
+          end
+        end
+      end
+
+      class << self
+        def extract_toolbox_pictures(window)
+          toolbox_pictures_points = []
+          window.contents.each_key do |key|
+            if window.contents[key].class == String and window.contents[key].include? "toolbox" and
+              toolbox_pictures_points << Position.new(key.first, key.last)
+            end
+          end
+          toolbox_pictures_points
+        end
+      end
+
+      class << self
+        def draw_toolbox_pictures(shoes_application, class_window)
+          toolbox_pictures_array, toolbox_pictures_coordinates = [], extract_toolbox_pictures(class_window)
+          toolbox_pictures_coordinates.each do |point|
+            toolbox_pictures_array << (shoes_application.image class_window.contents[[point.x, point.y]], left: scale_x(point.x).to_i, top: scale_y(point.y).to_i)
           end
           toolbox_pictures_array
         end
       end
 
       class << self
-        def draw_ground_pictures(shoes_application, class_window)
+        def extract_ground_pictures(window)
           ground_pictures_array = []
-          class_window.contents.each_key do |key| 
-            if class_window.contents[key].class == String and class_window.contents[key].include? "normal_elements"
-              ground_pictures_array << (shoes_application.image class_window.contents[key], left: scale_x(key.first).to_i, top: scale_y(key.last).to_i)
+          window.contents.each_key do |key|
+            if window.contents[key].class == String and window.contents[key].include? "normal_elements"
+               ground_pictures_array << Position.new(key.first, key.last)
             end
           end
           ground_pictures_array
@@ -112,24 +143,27 @@ module Graphics
       end
 
       class << self
-        def draw_captions(shoes_application, class_window)
-          class_window.contents.each_key do |key| 
-            if class_window.contents[key].class == String and class_window.contents[key].size == 1
-              shoes_application.para shoes_application.strong(class_window.contents[key]), font: "Arial", left: scale_x(key.first).to_i, top: scale_y(key.last).to_i
-            end
+        def draw_ground_pictures(shoes_application, class_window)
+          ground_pictures_array, ground_pictures_coordinates = [], extract_ground_pictures(class_window)
+          ground_pictures_coordinates.each do |point|
+             ground_pictures_array << (shoes_application.image class_window.contents[[point.x, point.y]], left: scale_x(point.x).to_i, top: scale_y(point.y).to_i)
           end
+          ground_pictures_array
+        end
+      end
+      
+      class << self
+        def ground_hover?(ground_pictures, mouse_left, mouse_top)
+          mouse_left > ground_pictures[0].style[:left] and mouse_top > ground_pictures[0].style[:top] and
+          mouse_left < ground_pictures.last.style[:left] + ground_pictures[0].full_width and 
+          mouse_top  < ground_pictures.last.style[:top]  + ground_pictures[0].full_height
         end
       end
 
       class << self
-        def toolbox_click(shoes_application, toolbox_pictures, toolbox_image_paths, clicked_tool)
-          toolbox_pictures.each_index do |index| 
-            toolbox_pictures[index].click do
-              toolbox_pictures[index].path = toolbox_image_paths[index].last
-              toolbox_pictures[clicked_tool].path = toolbox_image_paths[clicked_tool].first
-              clicked_tool = index
-            end
-          end
+        def picture_index_change(ground_pictures, picture_indexes, picture_paths, index, value)
+          picture_indexes[index] = [value]
+          ground_pictures[index].path = picture_paths[value]
         end
       end
 
@@ -138,7 +172,7 @@ module Graphics
           buttons_array = []
           class_window.contents.each_key do |key| 
             if class_window.contents[key].class == String and class_window.contents[key].include? "Level"
-              buttons_array << (shoes_application.button(class_window.contents[key]).style width: 126, height: 38, left: scale_x(key.first).to_i, top: scale_y(key.last).to_i)
+              buttons_array << (shoes_application.button(class_window.contents[key]).style width: 116, height: 30, left: scale_x(key.first).to_i, top: scale_y(key.last).to_i)
             end
           end
           buttons_array
@@ -156,14 +190,39 @@ module Graphics
           toolbox_pictures = class_instance.draw_toolbox_pictures self, class_window
           toolbox_image_paths = Sokoban.set_toolbox_image_paths
           toolbox_pictures[0].path = toolbox_image_paths[0].last
-          class_instance.toolbox_click self, toolbox_pictures, toolbox_image_paths, 0
+          clicked_tool = 0
+          toolbox_pictures.each_index do |index| 
+            toolbox_pictures[index].click do
+              toolbox_pictures[index].path = toolbox_image_paths[index].last
+              toolbox_pictures[clicked_tool].path = toolbox_image_paths[clicked_tool].first
+              clicked_tool = index
+            end
+          end
 
           #Catch buttons click events
           buttons_array = class_instance.draw_buttons self, class_window
           buttons_array.each { |button| button.click { p :pradnq } }
 
           #Catch ground drawing events
-          ground_images = class_instance.draw_ground_pictures self, class_window
+          ground_pictures = class_instance.draw_ground_pictures self, class_window
+          picture_indexes = ground_pictures.map { |picture| [4] }
+          picture_paths   = Sokoban.set_ground_image_paths
+          class_instance.picture_index_change ground_pictures, picture_indexes, picture_paths, 15, 2
+          mouse_down, saved = false, true
+          click do |button, left, top|
+            if button == 1 and class_instance.ground_hover?(ground_pictures, left, top)
+              mouse_down = true
+              saved = false
+            end
+          end
+          
+          # release do |button, left, top|
+            # if button == 1 and ground.ground_hover?(left, top)
+              # ground.update left, top, tool_box
+              # mouse_down = false
+            # end
+          # end
+          # motion { |left, top| ground.update left, top, tool_box if mouse_down }
         end
       end
     end

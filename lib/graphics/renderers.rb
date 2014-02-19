@@ -131,6 +131,52 @@ module Graphics
       end
 
       class << self
+        def draw_buttons(shoes_application, class_window)
+          buttons_array = []
+          class_window.contents.each_key do |key| 
+            if class_window.contents[key].class == String and class_window.contents[key].include? "Level"
+              buttons_array << (shoes_application.button(class_window.contents[key]).style width: 116, height: 30, left: scale_x(key.first).to_i, top: scale_y(key.last).to_i)
+            end
+          end
+          buttons_array
+        end
+      end
+
+      class << self
+        def button_event(button, ground_pictures, picture_indexes, picture_paths, shoes_application)
+          case button.style[:text]
+          when "Test Level"
+            if propriety_check(picture_indexes) == ""
+              #Sokoban.game ground.picture_indexes
+            else
+              shoes_application.alert propriety_check(picture_indexes)
+            end
+          when "New Level"
+            if shoes_application.confirm("Are you sure you want to start new level? All data for this level will be lost.")
+              ground_clear(ground_pictures, picture_indexes, picture_paths)
+            end
+          when "Save Level"
+            if propriety_check(picture_indexes) == ""
+              file = shoes_application.ask_save_file
+              File.open(file, "w+") { |file| file.write picture_indexes }
+            else
+              shoes_application.alert propriety_check(picture_indexes)
+            end
+          when "Load Level"
+            if shoes_application.confirm("Are you sure you want to load new level? All data for this level will be lost.")
+              file, coordinates = shoes_application.ask_open_file, []
+              file_information = File.read(file)
+              file_information.each_char { |charecter| coordinates << charecter.to_i if ["0", "1", "2", "3", "4"].include?(charecter) }
+              ground_clear(ground_pictures, picture_indexes, picture_paths)
+              coordinates.each_index do |index|
+                picture_index_change ground_pictures, picture_indexes, picture_paths, index, coordinates[index]
+              end
+            end
+          end
+        end
+      end
+
+      class << self
         def extract_ground_pictures(window)
           ground_pictures_array = []
           window.contents.each_key do |key|
@@ -161,21 +207,51 @@ module Graphics
       end
 
       class << self
-        def picture_index_change(ground_pictures, picture_indexes, picture_paths, index, value)
-          picture_indexes[index] = [value]
-          ground_pictures[index].path = picture_paths[value]
+        def picture_hover?(index, mouse_left, mouse_top, ground_pictures)
+          mouse_left > ground_pictures[index].style[:left] and mouse_top > ground_pictures[index].style[:top] and
+          mouse_left < ground_pictures[index].style[:left] + ground_pictures[index].full_width and
+          mouse_top  < ground_pictures[index].style[:top]  + ground_pictures[index].full_height
         end
       end
 
       class << self
-        def draw_buttons(shoes_application, class_window)
-          buttons_array = []
-          class_window.contents.each_key do |key| 
-            if class_window.contents[key].class == String and class_window.contents[key].include? "Level"
-              buttons_array << (shoes_application.button(class_window.contents[key]).style width: 116, height: 30, left: scale_x(key.first).to_i, top: scale_y(key.last).to_i)
-            end
+        def picture_index_at(mouse_left, mouse_top, ground_pictures)
+          ground_pictures.each_index { |index| return index if picture_hover? index, mouse_left, mouse_top, ground_pictures }
+        end
+      end
+
+      class << self
+        def ground_update(mouse_left, mouse_top, ground_pictures, picture_indexes, picture_paths, clicked_tool)
+          #Check if there is already a start position
+          if picture_indexes.include? 3 and clicked_tool == 3
+            picture_indexes = picture_index_change ground_pictures, picture_indexes, picture_paths, picture_indexes.index(3), 4
           end
-          buttons_array
+          picture_index_change ground_pictures, picture_indexes, picture_paths, picture_index_at(mouse_left, mouse_top, ground_pictures), clicked_tool
+        end
+      end
+
+      class << self
+        def picture_index_change(ground_pictures, picture_indexes, picture_paths, index, value)
+          ground_pictures[index].path = picture_paths[value]
+          picture_indexes[index] = value
+          picture_indexes
+        end
+      end
+
+      class << self
+        def ground_clear(ground_pictures, picture_indexes, picture_paths)
+          ground_pictures.each_index { |index| picture_index_change ground_pictures, picture_indexes, picture_paths, index, 4 }
+        end
+      end
+
+      class << self
+        def propriety_check(picture_indexes)
+          warnings = ""
+          warnings << "The level doesn't have a start." unless picture_indexes.include? 3
+          warnings << " Cubes don't match the finals count." unless picture_indexes.count(1) == picture_indexes.count(2)
+          warnings << " There are no cubes." if picture_indexes.count(1) == 0
+          warnings << " The level is already solved." if picture_indexes.all? { |element| element != 1 } and warnings == ""
+          warnings
         end
       end
 
@@ -199,30 +275,30 @@ module Graphics
             end
           end
 
-          #Catch buttons click events
-          buttons_array = class_instance.draw_buttons self, class_window
-          buttons_array.each { |button| button.click { p :pradnq } }
-
           #Catch ground drawing events
           ground_pictures = class_instance.draw_ground_pictures self, class_window
-          picture_indexes = ground_pictures.map { |picture| [4] }
+          picture_indexes = ground_pictures.map { 4 }
           picture_paths   = Sokoban.set_ground_image_paths
-          class_instance.picture_index_change ground_pictures, picture_indexes, picture_paths, 15, 2
-          mouse_down, saved = false, true
-          click do |button, left, top|
-            if button == 1 and class_instance.ground_hover?(ground_pictures, left, top)
-              mouse_down = true
-              saved = false
+          mouse_down      = false
+
+          click { |button, left, top| mouse_down = true if button == 1 and class_instance.ground_hover? ground_pictures, left, top }
+          
+          release do |button, left, top|
+            if button == 1 and class_instance.ground_hover? ground_pictures, left, top
+              picture_indexes = class_instance.ground_update left, top, ground_pictures, picture_indexes, picture_paths, clicked_tool
+              mouse_down = false
             end
           end
-          
-          # release do |button, left, top|
-            # if button == 1 and ground.ground_hover?(left, top)
-              # ground.update left, top, tool_box
-              # mouse_down = false
-            # end
-          # end
-          # motion { |left, top| ground.update left, top, tool_box if mouse_down }
+
+          motion do |left, top| 
+            if mouse_down and class_instance.ground_hover? ground_pictures, left, top
+              picture_indexes = class_instance.ground_update left, top, ground_pictures, picture_indexes, picture_paths, clicked_tool
+            end
+          end
+
+          #Catch buttons click events
+          buttons_array = class_instance.draw_buttons self, class_window
+          buttons_array.each { |button| button.click { class_instance.button_event button, ground_pictures, picture_indexes, picture_paths, self } }
         end
       end
     end

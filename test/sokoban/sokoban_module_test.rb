@@ -1,4 +1,4 @@
-require_relative '../../lib/graphics/window'
+require_relative '../lib/graphics/window'
 require_relative '../../lib/graphics/renderers'
 require_relative '../../lib/graphics/position'
 require_relative '../../lib/graphics/border'
@@ -8,7 +8,6 @@ require_relative '../../lib/graphics/toolbox'
 require_relative '../../lib/graphics/button'
 require_relative '../../lib/graphics/menu'
 require_relative '../../lib/graphics/ground'
-require_relative '../../lib/sokoban/game'
 require_relative '../helper'
 
 describe "Sokoban" do
@@ -122,6 +121,17 @@ describe "Graphics" do
         window.draw Graphics::Image.new "../img/normal_elements/wall.gif", Graphics::Position.new(4, 8)
         Graphics::Renderers::ShoesGUI.extract_ground_pictures(window).first.x.must_equal 4
         Graphics::Renderers::ShoesGUI.extract_ground_pictures(window).first.y.must_equal 8
+      end
+
+      it "checks if level is correctly made" do
+        picture_indexes = [4, 4, 4, 4, 4, 4, 4, 4]
+        Graphics::Renderers::ShoesGUI.propriety_check(picture_indexes).must_equal "The level doesn't have a start. There are no cubes."
+        picture_indexes << 2
+        Graphics::Renderers::ShoesGUI.propriety_check(picture_indexes).must_equal "The level doesn't have a start. Cubes don't match the finals count. There are no cubes."
+        picture_indexes << 1
+        Graphics::Renderers::ShoesGUI.propriety_check(picture_indexes).must_equal "The level doesn't have a start."
+        picture_indexes << 3
+        Graphics::Renderers::ShoesGUI.propriety_check(picture_indexes).must_equal ""
       end
     end
   end

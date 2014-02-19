@@ -1,14 +1,6 @@
-require_relative '../lib/graphics/window'
-require_relative '../lib/graphics/renderers'
-require_relative '../lib/graphics/position'
-require_relative '../lib/graphics/border'
-require_relative '../lib/graphics/image'
-require_relative '../lib/graphics/caption'
-require_relative '../lib/graphics/toolbox'
-require_relative '../lib/graphics/button'
-require_relative '../lib/graphics/menu'
-require_relative '../lib/graphics/ground'
 require_relative '../lib/sokoban/load_data'
+Sokoban.require_files
+
 
 toolbox_image_paths = Sokoban.set_toolbox_image_paths
 tool_box = Graphics::ToolBox.new "Tool Box", Graphics::Position.new(1, 1)

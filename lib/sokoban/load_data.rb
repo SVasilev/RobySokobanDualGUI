@@ -10,14 +10,15 @@ module Sokoban
   end
 
   def self.require_files
-    require_relative 'position.rb'
-    require_relative 'border.rb'
-    require_relative 'tool.rb'
-    require_relative 'toolbox.rb'
-    require_relative 'ground.rb'
-    require_relative 'player.rb'
-    require_relative 'menu.rb'
-    require_relative 'game.rb'
-    require_relative 'dropdown_menu.rb'
+    require_relative '../graphics/window'
+    require_relative '../graphics/renderers'
+    require_relative '../graphics/position'
+    require_relative '../graphics/border'
+    require_relative '../graphics/image'
+    require_relative '../graphics/caption'
+    require_relative '../graphics/toolbox'
+    require_relative '../graphics/button'
+    require_relative '../graphics/menu'
+    require_relative '../graphics/ground'
   end
 end

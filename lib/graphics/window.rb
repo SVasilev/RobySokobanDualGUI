@@ -1,6 +1,7 @@
 module Graphics
   class Window
-    attr_reader :width, :height, :contents
+    attr_reader :width, :height
+    attr_accessor :contents
 
     def initialize(width = 47, height = 29)
       @width    = width

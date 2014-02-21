@@ -1,4 +1,4 @@
-require_relative '../lib/graphics/window'
+require_relative '../../lib/graphics/window'
 require_relative '../../lib/graphics/renderers'
 require_relative '../../lib/graphics/position'
 require_relative '../../lib/graphics/border'
@@ -13,6 +13,18 @@ require_relative '../helper'
 describe "Sokoban" do
   it "is declared as top level constant" do
     Object.constants.must_include :Sokoban
+  end
+
+  it "includes game singleton method" do
+    #!!!
+  end
+
+  it "includes editor singleton method" do
+    #!!!
+  end
+
+  it "loads images correctly" do
+    #!!!
   end
 end
 
@@ -132,6 +144,14 @@ describe "Graphics" do
         Graphics::Renderers::ShoesGUI.propriety_check(picture_indexes).must_equal "The level doesn't have a start."
         picture_indexes << 3
         Graphics::Renderers::ShoesGUI.propriety_check(picture_indexes).must_equal ""
+      end
+
+      it "finds player position" do
+        #!!!
+      end
+
+      it "finds finals position" do
+        #!!!
       end
     end
   end
@@ -291,5 +311,11 @@ describe "Graphics" do
       Graphics.constants.must_include :Ground
     end
 
+    #!!!
+
+  end
+
+  describe "Player" do
+    #!!!
   end
 end

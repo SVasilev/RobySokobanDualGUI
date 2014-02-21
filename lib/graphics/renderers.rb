@@ -1,4 +1,4 @@
-require_relative '../sokoban/load_data'
+require_relative '../sokoban/game'
 
 module Graphics
   class Renderers
@@ -8,11 +8,12 @@ module Graphics
       end
 
       def image_sign(file_path)
-        return "W" if file_path.include? "wall"
-        return "C" if file_path.include? "cube"
-        return "F" if file_path.include? "final"
-        return "S" if file_path.include? "smiley"
-        return "E" if file_path.include? "eraser" or file_path.include? "empty"
+        return "#" if file_path.include? "wall"
+        return "o" if file_path.include? "cube"
+        return "x" if file_path.include? "final"
+        return "@" if file_path.include? "smiley"
+        return "E" if file_path.include? "eraser"
+        return " " if file_path.include? "nothing" or file_path.include? "empty"
         "B"
       end
 
@@ -32,7 +33,7 @@ module Graphics
           end
           rendered_string << "\n"
         end
-        rendered_string
+        puts rendered_string
       end
     end
 
@@ -147,7 +148,7 @@ module Graphics
           case button.style[:text]
           when "Test Level"
             if propriety_check(picture_indexes) == ""
-              #Sokoban.game ground.picture_indexes
+              Sokoban.game Graphics::Renderers::ShoesGUI, picture_indexes
             else
               shoes_application.alert propriety_check(picture_indexes)
             end
@@ -255,6 +256,96 @@ module Graphics
         end
       end
 
+      class << self
+        def find_player(class_window)
+          class_window.contents.each_key do |key| 
+            return Graphics::Position.new(key.first, key.last) if class_window.contents[key].class == String and class_window.contents[key].include?("smiley")
+          end
+        end
+      end
+
+      class << self
+        def find_finals(class_window)
+          finals_hash = {}
+          class_window.contents.each_key do |key| 
+            finals_hash[[key.first, key.last]] = class_window.contents[key] if class_window.contents[key].class == String and class_window.contents[key].include?("final")
+          end
+          finals_hash
+        end
+      end
+
+      class << self
+        def valid_move?(window, position, displacement, direction)
+          next_element = direction == :horizontal ? window.contents[[position.x + displacement, position.y]] : window.contents[[position.x, position.y + displacement]]
+          after_next   = direction == :horizontal ? window.contents[[position.x + 2 * displacement, position.y]] : window.contents[[position.x, position.y + 2 * displacement]]
+          return false if (next_element.class == String and next_element.include?("wall")) or next_element.class == Symbol or
+                          ((next_element.class == String and next_element.include?("cube")) and 
+                          ((after_next.class == String and (after_next.include?("wall") or after_next.include?("cube"))) or after_next.class == Symbol))
+          true
+        end
+      end
+
+      class << self
+        def push_cube_horizontal(window, position, displacement, ground_pictures)
+          if window.contents[[position.x + displacement, position.y]].include? "cube"
+            window.contents[[position.x + displacement * 2, position.y]] = "../img/normal_elements/cube.gif"
+            ground_pictures[(30 * (position.y - 2)) + position.x - 2 + displacement * 2].path = "../img/normal_elements/cube.gif"
+          end
+          return window
+        end
+      end
+
+      class << self
+        def push_cube_vertical(window, position, displacement, ground_pictures)
+          if window.contents[[position.x, position.y + displacement]].include? "cube"
+            window.contents[[position.x, position.y + displacement * 2]] = "../img/normal_elements/cube.gif"
+            ground_pictures[(30 * (position.y - 2 + displacement * 2)) + position.x - 2].path = "../img/normal_elements/cube.gif"
+          end
+          return window
+        end
+      end
+
+      class << self
+        def player_move(class_window, finals, direction, ground_pictures)
+          position = find_player class_window
+          case direction
+          when :left
+            if valid_move? class_window, position, -1, :horizontal
+              class_window.contents[[position.x, position.y]] = (finals[[position.x, position.y]] != nil) ? "../img/normal_elements/final.gif" : "../img/normal_elements/nothing.gif"
+              ground_pictures[(30 * (position.y - 2)) + position.x - 2].path = class_window.contents[[position.x, position.y]]
+              class_window = push_cube_horizontal(class_window, position, -1, ground_pictures)
+              class_window.contents[[position.x - 1, position.y]] = "../img/normal_elements/smiley.gif"
+              ground_pictures[(30 * (position.y - 2)) + position.x - 3].path = "../img/normal_elements/smiley.gif"
+            end
+          when :right
+            if valid_move? class_window, position, +1, :horizontal
+              class_window.contents[[position.x, position.y]] = (finals[[position.x, position.y]] != nil) ? "../img/normal_elements/final.gif" : "../img/normal_elements/nothing.gif"
+              ground_pictures[(30 * (position.y - 2)) + position.x - 2].path = class_window.contents[[position.x, position.y]]
+              class_window = push_cube_horizontal(class_window, position, +1, ground_pictures)
+              class_window.contents[[position.x + 1, position.y]] = "../img/normal_elements/smiley.gif"
+              ground_pictures[(30 * (position.y - 2)) + position.x - 1].path = "../img/normal_elements/smiley.gif"
+            end
+          when :up
+            if valid_move? class_window, position, -1, :vertical
+              class_window.contents[[position.x, position.y]] = (finals[[position.x, position.y]] != nil) ? "../img/normal_elements/final.gif" : "../img/normal_elements/nothing.gif"
+              ground_pictures[(30 * (position.y - 2)) + position.x - 2].path = class_window.contents[[position.x, position.y]]
+              class_window = push_cube_vertical(class_window, position, -1, ground_pictures)
+              class_window.contents[[position.x, position.y - 1]] = "../img/normal_elements/smiley.gif"
+              ground_pictures[(30 * (position.y - 3)) + position.x - 2].path = "../img/normal_elements/smiley.gif"
+            end
+          when :down
+            if valid_move? class_window, position, +1, :vertical
+              class_window.contents[[position.x, position.y]] = (finals[[position.x, position.y]] != nil) ? "../img/normal_elements/final.gif" : "../img/normal_elements/nothing.gif"
+              ground_pictures[(30 * (position.y - 2)) + position.x - 2].path = class_window.contents[[position.x, position.y]]
+              class_window = push_cube_vertical(class_window, position, +1, ground_pictures)
+              class_window.contents[[position.x, position.y + 1]] = "../img/normal_elements/smiley.gif"
+              ground_pictures[(30 * (position.y - 1)) + position.x - 2].path = "../img/normal_elements/smiley.gif"
+            end
+          end
+          return class_window
+        end
+      end
+
       def render
         class_instance, class_window = Graphics::Renderers::ShoesGUI, @window
 
@@ -265,13 +356,15 @@ module Graphics
           #Catch toolbox click events
           toolbox_pictures = class_instance.draw_toolbox_pictures self, class_window
           toolbox_image_paths = Sokoban.set_toolbox_image_paths
-          toolbox_pictures[0].path = toolbox_image_paths[0].last
-          clicked_tool = 0
-          toolbox_pictures.each_index do |index| 
-            toolbox_pictures[index].click do
-              toolbox_pictures[index].path = toolbox_image_paths[index].last
-              toolbox_pictures[clicked_tool].path = toolbox_image_paths[clicked_tool].first
-              clicked_tool = index
+          unless toolbox_pictures.empty?
+            toolbox_pictures[0].path = toolbox_image_paths[0].last
+            clicked_tool = 0
+            toolbox_pictures.each_index do |index| 
+              toolbox_pictures[index].click do
+                toolbox_pictures[index].path = toolbox_image_paths[index].last
+                toolbox_pictures[clicked_tool].path = toolbox_image_paths[clicked_tool].first
+                clicked_tool = index
+              end
             end
           end
 
@@ -299,6 +392,17 @@ module Graphics
           #Catch buttons click events
           buttons_array = class_instance.draw_buttons self, class_window
           buttons_array.each { |button| button.click { class_instance.button_event button, ground_pictures, picture_indexes, picture_paths, self } }
+
+          #Catch movement events
+          finals = class_instance.find_finals(class_window)
+          keypress do |key|
+            class_window = class_instance.player_move class_window, finals, key, ground_pictures
+            if class_window.contents.values.none? { |value| value.class == String and value.include?("final") } and 
+               !finals.keys.include?([class_instance.find_player(class_window).x, class_instance.find_player(class_window).y])
+              alert "Congratulations! You've completed the level."
+              close
+            end
+          end
         end
       end
     end

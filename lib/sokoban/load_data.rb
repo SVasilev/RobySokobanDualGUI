@@ -20,5 +20,6 @@ module Sokoban
     require_relative '../graphics/button'
     require_relative '../graphics/menu'
     require_relative '../graphics/ground'
+    require_relative '../graphics/player'
   end
 end

@@ -33,7 +33,7 @@ module Graphics
           end
           rendered_string << "\n"
         end
-        puts rendered_string
+        rendered_string
       end
     end
 

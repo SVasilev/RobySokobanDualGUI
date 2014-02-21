@@ -19,9 +19,12 @@ module Sokoban
       level.each_index { |index| finals[[index % ground.width, index.div(ground.width)]] = true if level[index] == 2 } 
       picture_paths = Sokoban.set_ground_image_paths
       player = Graphics::Player.new window, "../img/normal_elements/smiley.gif", finals, picture_paths, start_position
+
       window.draw ground
       level.each_index { |index| window.contents[[index % ground.width, index.div(ground.width)]] = picture_paths[level[index]] unless level[index] == 4 }
       window.draw player
+
+      p start_position
 
       if renderer == Graphics::Renderers::ShoesGUI
         window.render_as(renderer)

@@ -16,7 +16,8 @@ module Sokoban
       window.draw menu
       window.draw ground
 
-      window.render_as(renderer)
+      window.render_as(renderer) if renderer == Graphics::Renderers::ShoesGUI
+      puts window.render_as(renderer) if renderer == Graphics::Renderers::Console
     end
   end
 end

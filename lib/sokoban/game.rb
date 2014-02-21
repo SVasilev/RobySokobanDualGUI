@@ -24,13 +24,11 @@ module Sokoban
       level.each_index { |index| window.contents[[index % ground.width, index.div(ground.width)]] = picture_paths[level[index]] unless level[index] == 4 }
       window.draw player
 
-      p start_position
-
       if renderer == Graphics::Renderers::ShoesGUI
         window.render_as(renderer)
       else
         while(window.contents.values.any? { |value| value.class == String and value.include?("final") } or player.finals.keys.include?([player.position.x, player.position.y]))
-          window.render_as(renderer)
+          puts window.render_as(renderer)
           puts "Legend: # - Wall, o - Cube, x - Final, @ - Player\nCommands a - left, d - right, w - up, s - down, q - quit"
           input = STDIN.gets
           case input
